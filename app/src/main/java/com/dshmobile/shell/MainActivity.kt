@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.util.Log
 import android.view.View
-import android.view.accessibility.AccessibilityManager
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
@@ -14,7 +13,7 @@ import java.io.File
 
 /**
  * Shell activity: wires the Harness WebView, the boot wizard and the engine
- * lifecycle together. Pure orchestration 鈥?WebView plumbing lives in
+ * lifecycle together. Pure orchestration — WebView plumbing lives in
  * HarnessWebView, the wizard UI in GuideWizard, picking in PickerBridge,
  * export in ExportFlow, notifications in NotificationHelper.
  */
@@ -26,7 +25,7 @@ class MainActivity : ComponentActivity() {
   private lateinit var notifyHelper: NotificationHelper
 
   /** Engine lifecycle is owned by EngineService (keep-alive + watchdog); the
-   *  Activity starts it but never kills it 鈥?onDestroy must not stop the
+   *  Activity starts it but never kills it — onDestroy must not stop the
    *  engine or backgrounding would kill a healthy process that the watchdog
    *  then cold-boots again. */
   private val engineManager by lazy { EngineManager(this) }
@@ -42,7 +41,7 @@ class MainActivity : ComponentActivity() {
   /** True while the setup wizard asked the user to press Launch manually. */
   private var manualLaunchRequired = false
 
-  /** Screen-on wake lock: reuse a single instance (I-04 鈥?otherwise the lock
+  /** Screen-on wake lock: reuse a single instance (I-04 — otherwise the lock
    *  could never be released and multiple locks would leak). */
   private var wakeLock: PowerManager.WakeLock? = null
 
@@ -56,9 +55,7 @@ class MainActivity : ComponentActivity() {
 
   /** Record device/env facts once, so bug reports carry the context needed to
    *  diagnose ABI/runtime issues (e.g. x86_64 snapshot on an arm64 device). */
-  private fun logDeviceInfo()
-    // Accessibility: configure TalkBack support
-    configureAccessibility() {
+  private fun logDeviceInfo() {
     val abis =
       android.os.Build.SUPPORTED_ABIS
         .joinToString(",")
@@ -93,7 +90,6 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     AppLog.init(this)
     logDeviceInfo()
-    // Accessibility: configure TalkBack support
     configureAccessibility()
 
     notifyHelper = NotificationHelper(this)
@@ -166,7 +162,7 @@ class MainActivity : ComponentActivity() {
     applyTheme()
     harness.configure()
 
-    // Quick path: rootfs AND container already provisioned 鈫?go straight to
+    // Quick path: rootfs AND container already provisioned → go straight to
     // the Harness; the cold start is covered by the thin status bar, not the
     // full-screen guide.
     val provisioned =
@@ -180,7 +176,7 @@ class MainActivity : ComponentActivity() {
     // Testable update trigger: adb am start -n .../.MainActivity -a com.dshmobile.shell.action.UPDATE
     if (intent?.action == actionUpdate) {
       // I-03: the activity is exported (LAUNCHER), so any app can fire this
-      // intent and trigger the download+execute chain 鈥?accept it only in
+      // intent and trigger the download+execute chain — accept it only in
       // debug builds and ignore it in release.
       if (isDebuggable) runUpdate()
     } else {
@@ -192,7 +188,7 @@ class MainActivity : ComponentActivity() {
     super.onResume()
     // Back from the directory picker / Termux: re-route if the engine came up.
     // I-05: the probe performs network I/O; calling it on the main thread
-    // always throws NetworkOnMainThreadException (swallowed) 鈫?it would always
+    // always throws NetworkOnMainThreadException (swallowed) → it would always
     // report "not running" and force a reload losing page state on every
     // return to foreground. Move it to a background thread.
     Thread {
@@ -219,7 +215,7 @@ class MainActivity : ComponentActivity() {
   override fun onDestroy() {
     super.onDestroy()
     wizard.onDestroy()
-    // Screen-on wake lock: release unconditionally 鈥?a held lock survives
+    // Screen-on wake lock: release unconditionally — a held lock survives
     // the activity (and any recreation), keeping the screen on forever and
     // draining the battery; the page re-requests keep-screen-on after a
     // recreation.
@@ -304,7 +300,7 @@ class MainActivity : ComponentActivity() {
             engineManager.extractRootfs { done, _ ->
               runOnUiThread {
                 // done is extracted bytes; total is the archive bytes (different
-                // baselines) 鈥?show only the extracted amount.
+                // baselines) — show only the extracted amount.
                 wizard.showGuideStatus(
                   getString(R.string.status_extracting, done / 1024 / 1024),
                   null,
@@ -322,9 +318,9 @@ class MainActivity : ComponentActivity() {
           setupRan = true
           AppLog.log("boot", "extract ok, engineReady=" + engineManager.engineReady)
         }
-        // Step 2 鈥?container is mandatory: proot runtime must be present and
+        // Step 2 — container is mandatory: proot runtime must be present and
         // a real in-container command must pass (rootfs bash + node). A
-        // failing container counts as an engine start failure 鈥?the engine is
+        // failing container counts as an engine start failure — the engine is
         // not started without it. Every sub-step is logged under boot: so the
         // container init is visible in diagnostics.
         if (!prootRuntime.ensureProot()) {
@@ -347,7 +343,7 @@ class MainActivity : ComponentActivity() {
           return@Thread
         }
         AppLog.log("boot", "container init: smoke test pass")
-        // Step 3 鈥?after any setup, the user launches the engine manually;
+        // Step 3 — after any setup, the user launches the engine manually;
         // a fully provisioned install (snapshot + container) starts straight
         // into the Harness.
         if (setupRan) {
@@ -360,7 +356,7 @@ class MainActivity : ComponentActivity() {
           AppLog.log("boot", "setup done, waiting for manual launch")
           return@Thread
         }
-        // Quick path: everything provisioned 鈫?cold start under the thin bar.
+        // Quick path: everything provisioned → cold start under the thin bar.
         runOnUiThread {
           harness.view.visibility = View.VISIBLE
           wizard.showTopBar(BarState.STARTING)
@@ -538,7 +534,7 @@ class MainActivity : ComponentActivity() {
   private fun showWeb(barState: BarState? = BarState.SUCCESS) {
     // Reload only when the page actually failed to load (error page shown
     // before the engine answered); onResume/pick-return must NOT reload a
-    // healthy page 鈥?that discards session UI and races in-flight pick
+    // healthy page — that discards session UI and races in-flight pick
     // callbacks.
     harness.reloadIfFailed()
     if (barState != null) wizard.showTopBar(barState)
@@ -549,12 +545,11 @@ class MainActivity : ComponentActivity() {
     wizard.showGuide()
   }
 
-  /** Configure accessibility: enable font scaling, set up TalkBack hints. */
   private fun configureAccessibility() {
-    val am = getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
+    val am = getSystemService(android.content.Context.ACCESSIBILITY_SERVICE) as? android.view.accessibility.AccessibilityManager
     if (am?.isEnabled == true) {
-      AppLog.log("a11y", "accessibility service enabled: " + am.installedAccessibilityServiceNames.size + " services")
+      AppLog.log("a11y", "accessibility enabled: " + am.installedAccessibilityServiceNames.size + " services")
     }
-    window.decorView.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
-  }}
-
+    window.decorView.importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_YES
+  }
+}

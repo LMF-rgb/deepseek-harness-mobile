@@ -81,9 +81,9 @@ class LogPanel(
         textSize = 16f
         typeface = android.graphics.Typeface.DEFAULT_BOLD
       }
-    val copy = ghostAction(activity.getString(R.string.button_copy_panel)) { onCopy() }.apply { contentDescription = activity.getString(R.string.a11y_copy_button) }
-    val share = ghostAction(activity.getString(R.string.button_share)) { share() }.apply { contentDescription = activity.getString(R.string.a11y_share_button) }
-    val close = ghostAction(activity.getString(R.string.button_close)) { onClose() }.apply { contentDescription = activity.getString(R.string.a11y_close_button) }
+    val copy = ghostAction(activity.getString(R.string.button_copy_panel)) { onCopy() } }.apply { contentDescription = activity.getString(R.string.a11y_copy_button) }
+    val share = ghostAction(activity.getString(R.string.button_share)) { share() } }.apply { contentDescription = activity.getString(R.string.a11y_share_button) }
+    val close = ghostAction(activity.getString(R.string.button_close)) { onClose() } }.apply { contentDescription = activity.getString(R.string.a11y_close_button) }
 
     fun gap(): View =
       View(activity).apply {
@@ -110,8 +110,8 @@ class LogPanel(
         setPadding((16 * d).toInt(), (12 * d).toInt(), (16 * d).toInt(), (12 * d).toInt())
         setTextIsSelectable(true)
       }
-        body.contentDescription = activity.getString(R.string.a11y_log_content)
     logText = body
+    body.contentDescription = activity.getString(R.string.a11y_log_content)
     val scroll =
       ScrollView(activity).apply {
         isFillViewport = true
@@ -145,4 +145,3 @@ class LogPanel(
     }
   }
 }
-

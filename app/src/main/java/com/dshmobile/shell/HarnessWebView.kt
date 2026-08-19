@@ -36,14 +36,14 @@ class HarnessWebView(
 
   /** Tracks whether the engine-source page ended in a network error; drives
    *  the reload-if-failed policy instead of reloading on every show. A plain
-   *  boolean cannot work here 鈥?onPageFinished fires (with the pending URL)
+   *  boolean cannot work here — onPageFinished fires (with the pending URL)
    *  even for error pages, which used to clear the failed flag right after
    *  it was set, so a page that failed before the engine came up was never
    *  reloaded once the engine became reachable. */
   private val pageState = EnginePageState(EngineSource::isEngineSource)
   private var polyfillsJs: String? = null
 
-  val view: WebView = WebView(activity).apply { id = android.view.View.generateViewId() }.apply { contentDescription = activity.getString(R.string.a11y_webview); importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES }
+  val view: WebView = WebView(activity).apply { id = android.view.View.generateViewId() }.apply { contentDescription = activity.getString(R.string.a11y_webview); importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_YES }
 
   fun configure() {
     // WebView remote debugging (debug builds only): CDP automation on devices
@@ -83,7 +83,7 @@ class HarnessWebView(
           // carry Origin:null / sec-fetch-site markers and are rejected by dsh's
           // /api browser-trust fence (403, anti DNS-rebinding/cross-site). Route
           // it through an in-app download instead: HttpURLConnection has no
-          // browser markers 鈫?the fence lets it through (verified on MuMu).
+          // browser markers → the fence lets it through (verified on MuMu).
           if (EngineSource.isSessionExport(url, request.method)) {
             export.downloadToDownloads(url, null)
             return true
@@ -131,11 +131,11 @@ class HarnessWebView(
           pushSystemDark()
         }
       }
-    // WebView downloads 鈥?session-log export (/api/session.export) and other
-    // engine-source downloads 鈥?all go through the in-app MediaStore path:
+    // WebView downloads — session-log export (/api/session.export) and other
+    // engine-source downloads — all go through the in-app MediaStore path:
     // browser navigations carry Origin:null and are rejected by dsh's /api
     // browser-trust fence (403), while the in-app HttpURLConnection carries no
-    // browser markers 鈫?the fence lets it through (403 fix, see ExportFlow).
+    // browser markers → the fence lets it through (403 fix, see ExportFlow).
     view.setDownloadListener { url, _userAgent, contentDisposition, _mimeType, _contentLength ->
       export.downloadToDownloads(url, contentDisposition)
     }
@@ -173,21 +173,6 @@ class HarnessWebView(
       "androidBridge",
     )
     view.loadUrl(EngineProbe.ENGINE_URL)
-    // Accessibility: inject ARIA landmarks and lang attribute for TalkBack
-    view.post {
-      val a11yJs = """
-        (function() {
-          try {
-            document.documentElement.lang = 'zh-CN';
-            var main = document.querySelector('main') || document.querySelector('[role=main]') || document.body;
-            if (main && !main.getAttribute('role')) main.setAttribute('role', 'main');
-            var nav = document.querySelector('nav') || document.querySelector('[role=navigation]');
-            if (nav && !nav.getAttribute('role')) nav.setAttribute('role', 'navigation');
-          } catch(e) {}
-        })();
-      """.trimIndent()
-      view.evaluateJavascript(a11yJs, null)
-    }
   }
 
   /** Push the system dark-mode state: some OEM WebViews do not make
@@ -224,19 +209,9 @@ class HarnessWebView(
    *  page would re-load the error page itself on some WebViews. */
   fun reloadIfFailed() {
     if (pageState.isFailed) view.loadUrl(EngineProbe.ENGINE_URL)
-    // Accessibility: inject ARIA landmarks and lang attribute for TalkBack
+    // Accessibility: inject ARIA landmarks for TalkBack
     view.post {
-      val a11yJs = """
-        (function() {
-          try {
-            document.documentElement.lang = 'zh-CN';
-            var main = document.querySelector('main') || document.querySelector('[role=main]') || document.body;
-            if (main && !main.getAttribute('role')) main.setAttribute('role', 'main');
-            var nav = document.querySelector('nav') || document.querySelector('[role=navigation]');
-            if (nav && !nav.getAttribute('role')) nav.setAttribute('role', 'navigation');
-          } catch(e) {}
-        })();
-      """.trimIndent()
+      val a11yJs = """(function(){try{document.documentElement.lang="zh-CN";var m=document.querySelector("main")||document.querySelector("[role=main]")||document.body;if(m&&!m.getAttribute("role"))m.setAttribute("role","main");var n=document.querySelector("nav")||document.querySelector("[role=navigation]");if(n&&!n.getAttribute("role"))n.setAttribute("role","navigation")}catch(e){}})()"""
       view.evaluateJavascript(a11yJs, null)
     }
   }
@@ -250,7 +225,7 @@ class HarnessWebView(
    * Inject the old-WebView compatibility layer (assets/js/compat-polyfills.js)
    * before the page's own scripts run. Android 10 devices often carry
    * 2019-era Chromium; the Harness front-end relies on newer runtime APIs
-   * (e.g. AbortSignal.any 鈥?missing it broke the directory picker with
+   * (e.g. AbortSignal.any — missing it broke the directory picker with
    * "AbortSignal.any is not a function"). All polyfills are guarded, so
    * modern WebViews are unaffected.
    */
@@ -271,7 +246,7 @@ class HarnessWebView(
   /**
    * Atomic, replay-guarded external-browser open (for non-export external
    * links). Best effort: a failed launch is silent (callers do not read the
-   * return value); there is no MediaStore fallback contract here 鈥?the only
+   * return value); there is no MediaStore fallback contract here — the only
    * fallback path is the export route (inside ExportFlow).
    */
   private fun openInExternalBrowser(uri: Uri): Boolean {
@@ -287,4 +262,3 @@ class HarnessWebView(
     }
   }
 }
-
