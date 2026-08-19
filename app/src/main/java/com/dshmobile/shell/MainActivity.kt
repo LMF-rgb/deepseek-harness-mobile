@@ -548,7 +548,7 @@ class MainActivity : ComponentActivity() {
   private fun configureAccessibility() {
     val am = getSystemService(android.content.Context.ACCESSIBILITY_SERVICE) as? android.view.accessibility.AccessibilityManager
     if (am?.isEnabled == true) {
-      AppLog.log("a11y", "accessibility enabled: " + am.installedAccessibilityServiceNames.size + " services")
+      AppLog.log("a11y", "accessibility service enabled")
     }
     window.decorView.importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_YES
   }
