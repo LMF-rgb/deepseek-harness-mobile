@@ -1,0 +1,140 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">娣卞害缂栫爜</string>
+
+  <!-- Guide view -->
+  <string name="guide_brand_subtitle">Local AI coding environment</string>
+  <string name="step_runtime">Runtime</string>
+  <string name="step_container">Container</string>
+  <string name="step_launch">Launch</string>
+  <string name="button_retry">Retry</string>
+  <string name="button_check_update">Check for runtime updates</string>
+  <string name="button_copy_log">Copy diagnostic log</string>
+  <string name="button_back_to_harness">Back to Harness</string>
+  <string name="button_launch_engine">Launch engine</string>
+  <string name="container_install_done">Runtime ready</string>
+  <string name="container_install_failed">Runtime install failed</string>
+  <string name="notif_log_copied">Diagnostic log copied</string>
+  <string name="notif_log_copied_detail">%1$s lines copied to the clipboard 鈥?paste them into your bug report</string>
+
+  <!-- Notifications -->
+  <string name="notif_workspace_unavailable">External workspace unavailable</string>
+  <string name="notif_workspace_unavailable_detail">Selecting external directories is not supported on Android 10 and below</string>
+  <string name="notif_download_rejected">Download rejected</string>
+  <string name="notif_engine_only_export">Only files from the local engine can be exported</string>
+  <string name="notif_export_failed">Export failed</string>
+  <string name="notif_export_failed_old_os">Download is not supported on this Android version; upgrade to Android 10+</string>
+  <string name="notif_export_saved">Session log exported</string>
+  <string name="notif_export_saved_to">Saved to Downloads/%1$s</string>
+
+  <!-- Export result dialog -->
+  <string name="export_success">Export succeeded</string>
+  <string name="export_failed">Export failed</string>
+
+  <!-- Engine flow status -->
+  <string name="status_first_extract">Preparing your workspace鈥?/string>
+  <string name="status_extracting">Extracting runtime鈥?%1$d MB</string>
+  <string name="status_extract_failed">Runtime extraction failed. Please retry.</string>
+  <string name="status_engine_start_failed">Engine start failed. Please retry.</string>
+  <string name="status_engine_timeout">Engine start timed out. Please retry.</string>
+  <string name="status_engine_starting">Starting engine鈥?/string>
+  <string name="status_engine_starting_detail">Cold start can take up to a minute. Tap for details.</string>
+  <string name="status_engine_error_detail">Tap for details.</string>
+  <string name="status_container_installing">Preparing runtime鈥?/string>
+  <string name="status_container_installing_detail">One-time local setup</string>
+  <string name="status_container_init_failed">Runtime failed to initialize. Please retry.</string>
+  <string name="status_ready_to_launch">Everything is ready</string>
+  <string name="status_ready_to_launch_detail">Launch the engine to enter your workspace</string>
+
+  <!-- Download errors -->
+  <string name="err_create_download">Could not create the download file</string>
+  <string name="err_write_download">Could not write the download file</string>
+  <string name="err_export_too_large">Export file too large</string>
+  <string name="err_unknown">Unknown error</string>
+
+  <!-- Runtime update (UpdateManager) -->
+  <string name="update_checking">Checking for updates鈥?/string>
+  <string name="update_downloading">Downloading runtime (%1$d MB)鈥?/string>
+  <string name="update_verifying">Verifying鈥?/string>
+  <string name="update_extracting">Extracting new runtime鈥?/string>
+  <string name="update_switching">Switching runtime鈥?/string>
+  <string name="update_done">Update complete; the engine restarted</string>
+  <string name="update_failed">Update failed: %1$s</string>
+  <string name="err_manifest_https">The manifest URL must use HTTPS</string>
+  <string name="err_snapshot_url_https">The runtime download URL must use HTTPS</string>
+  <string name="err_manifest_no_sha">The manifest is missing sha256</string>
+  <string name="err_sha_mismatch">SHA256 mismatch: %1$s</string>
+  <string name="err_new_snapshot_no_node">The new runtime is missing node</string>
+  <string name="err_old_runtime_switch">Could not move the old runtime aside</string>
+  <string name="err_switch_failed_rollback">Switch failed and rollback failed (rootfs-old kept)</string>
+  <string name="err_switch_failed_rolled_back">Switch failed; rolled back</string>
+  <string name="err_download_http">Download HTTP %1$d</string>
+  <string name="err_snapshot_too_large">Runtime file too large</string>
+  <string name="err_manifest_http">Manifest HTTP %1$d</string>
+
+  <!-- Engine foreground service -->
+  <string name="engine_channel_name">dsh engine</string>
+  <string name="engine_notification_title">dsh engine running</string>
+  <string name="engine_notification_text">DeepSeek Harness is working in the background</string>
+
+  <!-- Shizuku -->
+  <string name="shizuku_granted">Shizuku authorized (v%1$d) 鈥?keep-alive boost ready</string>
+  <string name="shizuku_absent">Shizuku not running (optional: needed for background keep-alive boost)</string>
+  <string name="update_in_progress">Update already running 鈥?wait for it to finish.</string>
+  <string name="update_restart_hint">Restart the app to apply the new runtime.</string>
+  <string name="button_keep_alive">Background keep-alive</string>
+  <string name="keep_alive_title">Background keep-alive</string>
+  <string name="keep_alive_close">Done</string>
+  <string name="keep_alive_battery">Battery optimization exemption</string>
+  <string name="keep_alive_shizuku">Shizuku un-killable boost</string>
+  <string name="keep_alive_battery_ignored">鈥?Battery optimization: exempted 鉁?/string>
+  <string name="keep_alive_battery_not_ignored">鈥?Battery optimization: NOT exempted 鈥?open the system page and allow it</string>
+  <string name="keep_alive_autostart_hint">鈥?OEM autostart: enable autostart for this app in your vendor battery/security settings, or the system may kill it in the background</string>
+  <string name="shizuku_boost">Shizuku boost: </string>
+  <string name="shizuku_permission_denied">Shizuku permission denied 鈥?grant it in the Shizuku app and retry.</string>
+  <string name="shizuku_service_disconnected">Shizuku user service disconnected.</string>
+
+  <!-- Top bar (floating pill) -->
+  <string name="bar_failed">Connection failed 路 tap for details</string>
+  <string name="bar_success">Engine ready</string>
+
+  <!-- Guide actions -->
+  <string name="button_reload">Reload</string>
+  <string name="button_view_log">View log</string>
+
+  <!-- Step cards -->
+  <string name="step_status_done">Done</string>
+  <string name="step_status_active">In progress鈥?/string>
+  <string name="step_status_pending">Pending</string>
+
+  <!-- Log viewer panel -->
+  <string name="log_panel_title">Diagnostic log</string>
+  <string name="button_copy_panel">Copy</string>
+  <string name="button_share">Share</string>
+  <string name="button_close">Close</string>
+  <string name="log_share_title">Share diagnostic log</string>
+
+  <!-- Accessibility -->
+  <string name="accessibility_service_description">DeepSeek Harness 无障碍服务：提供屏幕朗读和 UI 元素描述支持</string>
+  <string name="a11y_brand_block">深度编码应用标志</string>
+  <string name="a11y_step_card_runtime">步骤一：运行环境</string>
+  <string name="a11y_step_card_container">步骤二：容器</string>
+  <string name="a11y_step_card_launch">步骤三：启动</string>
+  <string name="a11y_step_status_done">已完成</string>
+  <string name="a11y_step_status_active">进行中</string>
+  <string name="a11y_step_status_pending">待处理</string>
+  <string name="a11y_primary_button">主要操作按钮</string>
+  <string name="a11y_back_button">返回按钮</string>
+  <string name="a11y_action_grid">操作区域</string>
+  <string name="a11y_status_card">引擎状态</string>
+  <string name="a11y_top_bar">状态浮动条</string>
+  <string name="a11y_log_panel">诊断日志面板</string>
+  <string name="a11y_copy_button">复制诊断日志</string>
+  <string name="a11y_share_button">分享诊断日志</string>
+  <string name="a11y_close_button">关闭日志面板</string>
+  <string name="a11y_log_content">诊断日志内容</string>
+  <string name="a11y_keep_alive_panel">后台保活设置面板</string>
+  <string name="a11y_webview">深度编码工作区</string>
+  <string name="a11y_error_block">错误详情</string>
+</resources>
+

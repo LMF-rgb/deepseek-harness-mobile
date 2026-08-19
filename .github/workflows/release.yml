@@ -1,0 +1,164 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release tag to publish (e.g. v0.1.0)'
+        required: true
+        default: 'v0.1.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (arm64-v8a)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5.7.0
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4.0.1
+        with:
+          packages: 'platforms;android-36 platform-tools build-tools;36.0.0'
+          accept-android-sdk-licenses: 'true'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6.3.0
+
+      - name: Determine release tag
+        id: tag
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            TAG="${{ github.ref_name }}"
+          else
+            TAG="${{ inputs.version }}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          # Monotonic versionCode from the tag: v0.1.0 -> 100, v0.2.0 -> 200
+          VER="${TAG#v}"
+          CODE=$(echo "$VER" | awk -F. '{printf "%d%02d%02d", $1, $2, $3}')
+          echo "version_name=$VER" >> "$GITHUB_OUTPUT"
+          echo "version_code=$CODE" >> "$GITHUB_OUTPUT"
+
+      - name: Download single-runtime rootfs (arm64) from dsh-arm64 releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p app/src/main/assets
+          asset_url=$(gh api repos/dsh-io/dsh-arm64/releases/latest \
+            --jq '.assets[] | select(.name | startswith("dsh-arm64-rootfs-")) | .url' | head -1)
+          [ -n "$asset_url" ] || { echo "rootfs asset not found in dsh-arm64 latest release"; exit 1; }
+          curl -sfL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" \
+            "$asset_url" -o app/src/main/assets/rootfs.tar.xz
+          ls -lh app/src/main/assets/rootfs.tar.xz
+
+      - name: Get CI signing key
+        env:
+          RELEASE_KEYSTORE_B64: ${{ secrets.RELEASE_KEYSTORE_B64 }}
+        run: |
+          # The keystore MUST come from the repo secret — never fall back to a
+          # release asset or a freshly generated key: both would hand out (or
+          # rotate) the production signing key publicly, letting anyone forge
+          # an update with the same signature. Missing secret = hard fail.
+          if [ -z "$RELEASE_KEYSTORE_B64" ]; then
+            echo "RELEASE_KEYSTORE_B64 secret not set; refusing to build without a stable signing key" >&2
+            exit 1
+          fi
+          echo "$RELEASE_KEYSTORE_B64" | base64 -d > release.keystore
+          keytool -list -keystore release.keystore -storepass android -alias release >/dev/null 2>&1 \
+            || { echo "keystore secret is not valid (alias 'release', storepass 'android')" >&2; exit 1; }
+          ls -la release.keystore
+
+      - name: Run JVM unit tests
+        run: |
+          chmod +x gradlew
+          ./gradlew testDebugUnitTest
+
+      - name: Run local JS/C tests
+        run: ./tests/run-local.sh
+
+      - name: Test coverage report (best effort)
+        run: |
+          ./gradlew jacocoTestReport || true
+
+      - name: Package proot runtime (arm64)
+        run: |
+          # Termux proot + libtalloc + libandroid-shmem debs, unpacked into
+          # APK assets. Zero compilation: same build ecosystem as the rootfs.
+          ABI=aarch64
+          BASE="https://packages.termux.dev/apt/termux-main/pool/main"
+          mkdir -p /tmp/proot && cd /tmp/proot
+          curl -sfL -o proot.deb "$BASE/p/proot/proot_5.1.107.91_${ABI}.deb"
+          curl -sfL -o talloc.deb "$BASE/libt/libtalloc/libtalloc_2.4.3_${ABI}.deb"
+          curl -sfL -o shmem.deb "$BASE/liba/libandroid-shmem/libandroid-shmem_0.7_${ABI}.deb"
+          mkdir -p x && for d in proot talloc shmem; do
+            ar x $d.deb && tar -xf data.tar.xz -C x && rm -f data.tar.xz
+          done
+          P=x/data/data/com.termux/files
+          cp "$P/usr/bin/proot" . && cp "$P/usr/lib/libtalloc.so.2" "$P/usr/lib/libandroid-shmem.so" .
+          ls -la proot libtalloc.so.2 libandroid-shmem.so
+          file proot | grep -q ELF || { echo "proot not ELF"; exit 1; }
+          readelf --dyn-syms proot | grep -q talloc || { echo "proot missing talloc ref"; exit 1; }
+          mkdir -p "$GITHUB_WORKSPACE/app/src/main/assets/proot/arm64-v8a"
+          cp proot libtalloc.so.2 libandroid-shmem.so "$GITHUB_WORKSPACE/app/src/main/assets/proot/arm64-v8a/"
+
+      - name: Build release APK
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease \
+            -PversionName="${{ steps.tag.outputs.version_name }}" \
+            -PversionCode=${{ steps.tag.outputs.version_code }} \
+            -PabiFilter=arm64-v8a
+
+      - name: Rename APK
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/release/app-release.apk "dist/dsh-apk-${{ steps.tag.outputs.tag }}.apk"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: apk-arm64-v8a
+          path: dist/
+
+  publish:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine release tag
+        id: tag
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download APK artifacts
+        uses: actions/download-artifact@v8.0.1
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v3.0.2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: ${{ steps.tag.outputs.tag }}
+          overwrite_files: true
+          body: |
+            DeepSeek Harness Android shell APK ${{ steps.tag.outputs.tag }}
+            - arm64-v8a only: single embedded Debian rootfs runtime
+          files: dist/*.apk
