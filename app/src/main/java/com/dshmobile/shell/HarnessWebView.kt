@@ -43,11 +43,11 @@ class HarnessWebView(
   private val pageState = EnginePageState(EngineSource::isEngineSource)
   private var polyfillsJs: String? = null
 
-  val view: WebView = WebView(activity).apply { id = android.view.View.generateViewId() }
-    .apply {
-      contentDescription = activity.getString(R.string.a11y_webview)
-      importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_YES
-    }
+
+  init {
+    view.contentDescription = activity.getString(R.string.a11y_webview)
+    view.importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_YES
+  }
 
   fun configure() {
     // WebView remote debugging (debug builds only): CDP automation on devices
