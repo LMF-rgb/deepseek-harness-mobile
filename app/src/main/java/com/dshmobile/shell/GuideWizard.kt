@@ -1,8 +1,8 @@
 ﻿package com.dshmobile.shell
 
 import android.view.View
-import android.view.accessibility.AccessibilityEvent
 import android.view.ViewGroup
+import android.view.accessibility.AccessibilityEvent
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ScrollView

@@ -43,7 +43,11 @@ class HarnessWebView(
   private val pageState = EnginePageState(EngineSource::isEngineSource)
   private var polyfillsJs: String? = null
 
-  val view: WebView = WebView(activity).apply { id = android.view.View.generateViewId() }.apply { contentDescription = activity.getString(R.string.a11y_webview); importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_YES }
+  val view: WebView = WebView(activity).apply { id = android.view.View.generateViewId() }
+    .apply {
+      contentDescription = activity.getString(R.string.a11y_webview)
+      importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_YES
+    }
 
   fun configure() {
     // WebView remote debugging (debug builds only): CDP automation on devices
@@ -211,7 +215,16 @@ class HarnessWebView(
     if (pageState.isFailed) view.loadUrl(EngineProbe.ENGINE_URL)
     // Accessibility: inject ARIA landmarks for TalkBack
     view.post {
-      val a11yJs = """(function(){try{document.documentElement.lang="zh-CN";var m=document.querySelector("main")||document.querySelector("[role=main]")||document.body;if(m&&!m.getAttribute("role"))m.setAttribute("role","main");var n=document.querySelector("nav")||document.querySelector("[role=navigation]");if(n&&!n.getAttribute("role"))n.setAttribute("role","navigation")}catch(e){}})()"""
+      val a11yJs = """
+        (function(){
+          try{
+            document.documentElement.lang="zh-CN";
+            var m=document.querySelector("main")||document.querySelector("[role=main]")||document.body;
+            if(m&&!m.getAttribute("role"))m.setAttribute("role","main");
+            var n=document.querySelector("nav")||document.querySelector("[role=navigation]");
+            if(n&&!n.getAttribute("role"))n.setAttribute("role","navigation");
+          }catch(e){}
+        })()"""
       view.evaluateJavascript(a11yJs, null)
     }
   }
