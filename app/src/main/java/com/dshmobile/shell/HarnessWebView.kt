@@ -44,6 +44,7 @@ class HarnessWebView(
   private var polyfillsJs: String? = null
 
   val view: WebView = WebView(activity).apply { id = android.view.View.generateViewId() }
+
   init {
     view.contentDescription = activity.getString(R.string.a11y_webview)
     view.importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_YES
