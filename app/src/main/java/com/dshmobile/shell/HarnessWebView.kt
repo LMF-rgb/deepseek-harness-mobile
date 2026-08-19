@@ -43,7 +43,7 @@ class HarnessWebView(
   private val pageState = EnginePageState(EngineSource::isEngineSource)
   private var polyfillsJs: String? = null
 
-
+  val view: WebView = WebView(activity).apply { id = android.view.View.generateViewId() }
   init {
     view.contentDescription = activity.getString(R.string.a11y_webview)
     view.importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_YES
@@ -177,6 +177,18 @@ class HarnessWebView(
       "androidBridge",
     )
     view.loadUrl(EngineProbe.ENGINE_URL)
+    // Accessibility: inject ARIA landmarks for TalkBack
+    view.post {
+      val a11yJs = """
+        (function(){
+          try{
+            document.documentElement.lang="zh-CN";
+            var m=document.querySelector("main")||document.body;
+            if(m&&!m.getAttribute("role"))m.setAttribute("role","main");
+          }catch(e){}
+        })()"""
+      view.evaluateJavascript(a11yJs, null)
+    }
   }
 
   /** Push the system dark-mode state: some OEM WebViews do not make
@@ -213,20 +225,6 @@ class HarnessWebView(
    *  page would re-load the error page itself on some WebViews. */
   fun reloadIfFailed() {
     if (pageState.isFailed) view.loadUrl(EngineProbe.ENGINE_URL)
-    // Accessibility: inject ARIA landmarks for TalkBack
-    view.post {
-      val a11yJs = """
-        (function(){
-          try{
-            document.documentElement.lang="zh-CN";
-            var m=document.querySelector("main")||document.querySelector("[role=main]")||document.body;
-            if(m&&!m.getAttribute("role"))m.setAttribute("role","main");
-            var n=document.querySelector("nav")||document.querySelector("[role=navigation]");
-            if(n&&!n.getAttribute("role"))n.setAttribute("role","navigation");
-          }catch(e){}
-        })()"""
-      view.evaluateJavascript(a11yJs, null)
-    }
   }
 
   /** Evaluate a bridge-delivery script on the main thread (post). */
